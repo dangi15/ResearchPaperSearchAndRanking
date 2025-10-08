@@ -1,6 +1,7 @@
 import pandas as pd
 import json
 import zipfile
+from tabulate import tabulate
 
 rows = []
 with zipfile.ZipFile('D:/coding/Python/elective/archive.zip', 'r') as f:
@@ -25,7 +26,12 @@ def keywordSearch(query, df, limit=5):
 query = input("Enter your query: ")
 result = keywordSearch(query, df)
 
-for index, row in result.iterrows():
-    print(f'\n{row['title']}')
-    print(f'{row['authors']}')
-    print(f'https://arxiv.org/abs/{row['id']}')
+table_data = []
+for i, row in result.iterrows():
+    title = row.get('title', '')[:120]
+    authors = row.get('authors', '')
+    link = f"https://arxiv.org/abs/{row.get('id', '')}"
+    table_data.append([title, authors, link])
+
+headers = ['Title', 'Authors', 'Link']
+print(tabulate(table_data, headers=headers, tablefmt='grid'))
