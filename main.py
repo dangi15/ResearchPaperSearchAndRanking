@@ -15,5 +15,17 @@ with zipfile.ZipFile('D:/coding/Python/elective/archive.zip', 'r') as f:
             except json.JSONDecodeError:
                 continue
 
-df = pd.DataFrame(rows)    
-print(df)
+df = pd.DataFrame(rows)   
+
+def keywordSearch(query, df, limit=5):
+    query = query.lower()
+    results = df[df['title'].str.lower().str.contains(query, na=False) | df['abstract'].str.lower().str.contains(query, na=False)]
+    return results.head(limit)
+
+query = input("Enter your query: ")
+result = keywordSearch(query, df)
+
+for index, row in result.iterrows():
+    print(f'\n{row['title']}')
+    print(f'{row['authors']}')
+    print(f'https://arxiv.org/abs/{row['id']}')
