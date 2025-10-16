@@ -1,44 +1,23 @@
-import pandas as pd
-import json
-import zipfile
 from tabulate import tabulate
-import rec
+import rec, pre, search, extraction
 
-rows = []
-filepath = 'C:/Users/ragha/Downloads/archive.zip'
-with zipfile.ZipFile(filepath, 'r') as f:
-    with f.open('arxiv-metadata-oai-snapshot.json') as f:
-        for i, line in enumerate(f):
-            if i >= 100000:
-                break
-            try:
-                record = json.loads(line)
-                record['id'] = str(record.get('id', ''))
-                rows.append(record)
-            except json.JSONDecodeError:
-                continue
+# Extraction
+df = extraction.extract()
 
-df = pd.DataFrame(rows)
+# Preprocessing
+df = pre.preprocessing(df)
 
-def keywordSearch(query, df, limit=100):
-    query = query.lower()
-    results = df[df['title'].str.lower().str.contains(query, na=False) | df['abstract'].str.lower().str.contains(query, na=False)]
-    return results.head(limit)
-
-def authorSearch(query, df, limit=100):
-    query = query.lower()
-    results = df[df['authors'].str.lower().str.contains(query, na=False)]
-    return results.head(limit)
-
+# Searching
 searchType = input("(A)uthor/(R)easearch Paper: ").upper()
-query = input("Enter your query: ")
-if searchType=='A':
-    result = authorSearch(query, df)
-elif searchType=='R':
-    result = keywordSearch(query, df)
+query = input("Enter your query: ").lower()
+if searchType == 'A':
+    result = search.authorSearch(query, df)
+elif searchType == 'R':
+    result = search.paperSearch(query, df)
 else:
     print("Enter valid argument")
 
+# Displaying
 table_data = []
 for i, row in result.iterrows():
     title = row.get('title', '')[:120]
@@ -48,8 +27,9 @@ for i, row in result.iterrows():
 
 headers = ['Title', 'Authors', 'Link']
 print(tabulate(table_data[0:10], headers=headers, tablefmt='grid'))
-for i in range(10, 100, 10):
-    c = input()
+
+for i in range(10, len(table_data), 10):
+    c = input("(N)ext/(E)xit: ").lower()
     if c=='n':
         print(tabulate(table_data[i:i+10], headers=headers, tablefmt='grid'))
     else:
@@ -62,4 +42,5 @@ for i in index:
     authors = df.iloc[int(i)].get('authors', '')
     link = f"https://arxiv.org/abs/{df.iloc[int(i)].get('id', '')}"
     rec_data.append([title, authors, link])
+print('Similar Recommendations: ')
 print(tabulate(rec_data, headers=headers, tablefmt='grid'))

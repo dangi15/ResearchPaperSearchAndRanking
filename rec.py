@@ -1,5 +1,4 @@
 from sentence_transformers import SentenceTransformer, util
-# import torch
 
 def recommendations(query, df):
     model = SentenceTransformer('all-MiniLM-L6-v2')
