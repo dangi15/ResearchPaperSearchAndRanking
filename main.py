@@ -1,11 +1,16 @@
 from tabulate import tabulate
 import rec, pre, search, extraction
+import pandas as pd
 
-# Extraction
-df = extraction.extract()
+try:
+    with open('papers.csv', 'r') as f:
+        df = pd.read_csv('papers.csv')
+except:
+    # Extraction
+    df = extraction.extract()
+    # Preprocessing
+    df = pre.preprocessing(df)
 
-# Preprocessing
-df = pre.preprocessing(df)
 
 # Searching
 searchType = input("(A)uthor/(R)easearch Paper: ").upper()
@@ -38,9 +43,9 @@ for i in range(10, len(table_data), 10):
 rec_data = []
 index = rec.recommendations(query, df)
 for i in index:
-    title = df.iloc[int(i)].get('title', '')[:120]
-    authors = df.iloc[int(i)].get('authors', '')
-    link = f"https://arxiv.org/abs/{df.iloc[int(i)].get('id', '')}"
+    title = df.iloc[i].get('title', '')[:120]
+    authors = df.iloc[i].get('authors', '')
+    link = f"https://arxiv.org/abs/{df.iloc[i].get('id', '')}"
     rec_data.append([title, authors, link])
 print('Similar Recommendations: ')
 print(tabulate(rec_data, headers=headers, tablefmt='grid'))

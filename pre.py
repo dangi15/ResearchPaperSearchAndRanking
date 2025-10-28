@@ -11,6 +11,7 @@ def preprocessing(df):
     df['text'] = df['title'].str.lower() + ' ' + df['abstract'].str.lower()
 
     df['clean_text'] = df['text'].apply(clean_text)
+    df.to_csv('papers.csv', index=False)
     return df
 
 def clean_text(text):

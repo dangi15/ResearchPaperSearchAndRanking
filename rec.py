@@ -3,7 +3,7 @@ from sentence_transformers import SentenceTransformer, util
 def recommendations(query, df):
     model = SentenceTransformer('all-MiniLM-L6-v2')
 
-    results = df['abstract']
+    results = df['clean_text']
 
     query = model.encode(query)
 
