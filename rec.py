@@ -1,23 +1,14 @@
 from sentence_transformers import SentenceTransformer, util
+import numpy as np
+
+model = SentenceTransformer('all-MiniLM-L6-v2')
+embeddings = np.load('D:/coding/Python/elective/sem3PBL/files/embeddings.npy')
 
 def recommendations(query, df):
-    model = SentenceTransformer('all-MiniLM-L6-v2')
+    query_emb = model.encode(query, convert_to_tensor=True)
+    corpus_emb = embeddings
 
-    results = df['clean_text']
+    cosine_scores = util.cos_sim(query_emb, corpus_emb)[0]
+    indices = np.argsort(-cosine_scores)[:5].tolist()
 
-    query = model.encode(query)
-
-    index = []
-    x = 0
-    count = 0
-    for i in results:
-        if(count>=5):
-            break
-        abstract = model.encode(i)
-        similarity = util.cos_sim(query, abstract)[0]
-        if(float(similarity)>0.2):
-            count += 1
-            index.append(x)
-        x += 1
-
-    return index
+    return indices
