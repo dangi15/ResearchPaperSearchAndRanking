@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Paper Search</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
+  <link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/dataTables.bootstrap5.min.css">
+  <style>
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    body {
+      font-family: sans-serif;
+      margin: 0;
+      background-color: #fafafa;
+      transition: all 0.5s ease;
+    }
+    .container {
+      max-width: 1000px;
+      margin: auto;
+      text-align: center;
+      transition: all 0.6s ease;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 80vh;
+      padding-left: 15px;
+      padding-right: 15px;
+    }
+    {% if query %}
+    .container {
+      justify-content: flex-start;
+      padding-top: 20px;
+      height: auto;
+    }
+    .content-area {
+      animation: fadeIn 0.8s ease-out forwards;
+      width: 100%;
+    }
+    {% endif %}
+    h1 {
+      color: #333;
+      margin-bottom: 20px;
+      transition: all 0.5s ease;
+    }
+    .form-container {
+      background: #f4f4f4;
+      padding: 20px;
+      border-radius: 8px;
+      display: flex;
+      justify-content: center;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+      transition: all 0.5s ease;
+      width: 100%;
+      max-width: 800px;
+    }
+    form {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      width: 100%;
+      gap: 10px;
+    }
+    .search-controls {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-shrink: 0;
+    }
+    .search-container {
+      flex: 1;
+      display: flex;
+      border: 1px solid #999;
+      border-radius: 5px;
+      overflow: hidden;
+      background-color: white;
+    }
+    .search-container input[type="text"] {
+      border: none;
+      padding: 10px;
+      flex: 1;
+      outline: none;
+      font-size: 15px;
+      width: 100%;
+    }
+    button {
+      padding: 10px 20px;
+      background: #007bff;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 15px;
+      transition: 0.2s;
+      flex-shrink: 0;
+    }
+    button:hover {
+      background: #0056b3;
+    }
+    #loading-spinner {
+      display: none;
+    }
+    .table {
+      margin-top: 25px;
+      text-align: left;
+    }
+    .dataTables_wrapper .row {
+      margin-top: 15px;
+    }
+    .results-table th:nth-child(3),
+    .results-table td:nth-child(3) {
+      width: 150px;
+      text-align: center;
+    }
+    @media (max-width: 600px) {
+      form {
+        flex-direction: column;
+        gap: 10px;
+      }
+      button {
+        width: 100%;
+      }
+      .search-container {
+        width: 100%;
+      }
+      .search-controls {
+        width: 100%;
+        justify-content: space-between;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Research Paper Search</h1>
+    <div class="form-container">
+      <form action="/search" method="POST" id="search-form">
+        <div class="search-container">
+          <input type="text" id="query" name="query" value="{{ query or '' }}" placeholder="Enter your query">
+        </div>
+        <div class="search-controls">
+          <button type="submit" id="search-button">Search</button>
+          <div id="loading-spinner" class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Loading...</span>
+          </div>
+        </div>
+      </form>
+    </div>
+    {% if query %}
+    <div class="content-area">
+      <h2>Search Results for: "{{ query }}"</h2>
+    {% endif %}
+    {% if search_results %}
+      <table id="search-results-table" class="table table-striped table-hover">
+        <thead class="table-light">
+          <tr>
+            <th>Title</th>
+            <th>Authors</th>
+            <th>Link</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for paper in search_results %}
+          <tr>
+            <td>{{ paper.title }}</td>
+            <td>{{ paper.authors }}</td>
+            <td><a href="{{ paper.link }}" target="_blank" class="btn btn-sm btn-info">View Paper</a></td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% else %}
+      {% if query %}
+        <p>No search results found.</p>
+      {% endif %}
+    {% endif %}
+    {% if recommendations %}
+      <h2>Recommended Papers</h2>
+      <table id="recommendations-table" class="table table-striped table-hover">
+        <thead class="table-light">
+          <tr>
+            <th>Title</th>
+            <th>Authors</th>
+            <th>Link</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for rec in recommendations %}
+          <tr>
+            <td>{{ rec.title }}</td>
+            <td>{{ rec.authors }}</td>
+            <td><a href="{{ rec.link }}" target="_blank" class="btn btn-sm btn-info">View Paper</a></td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% endif %}
+    {% if query %}
+    </div>
+    {% endif %}
+  </div>
+  <script src="https://code.jquery.com/jquery-3.7.0.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
+  <script src="https://cdn.datatables.net/1.13.7/js/dataTables.bootstrap5.min.js"></script>
+  <script>
+    const searchForm = document.getElementById('search-form');
+    const queryInput = document.getElementById('query');
+    const searchButton = document.getElementById('search-button');
+    const spinner = document.getElementById('loading-spinner');
+    searchForm.addEventListener('submit', function(event) {
+      const queryValue = queryInput.value.trim();
+      if (queryValue === '') {
+        alert('Please enter a search query.');
+        event.preventDefault();
+      } else {
+        spinner.style.display = 'inline-block';
+        searchButton.disabled = true;
+      }
+    });
+    {% if search_results %}
+    $(document).ready(function() {
+      document.getElementById('search-button').disabled = false;
+      document.getElementById('loading-spinner').style.display = 'none';
+      $('#search-results-table').DataTable({
+        "lengthMenu": [ [10, 25, 50, -1], [10, 25, 50, "All"] ],
+        "pageLength": 10
+      });
+      if ($('#recommendations-table').length) {
+        $('#recommendations-table').DataTable({
+          "lengthMenu": [ [5, 10, 25, -1], [5, 10, 25, "All"] ],
+          "pageLength": 5
+        });
+      }
+    });
+    {% endif %}
+  </script>
+</body>
+</html>

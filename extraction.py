@@ -12,9 +12,10 @@ def extract():
                     break
                 try:
                     record = json.loads(line)
-                    record['id'] = str(record.get('id', ''))
-                    rows.append(record)
+                    record_id = str(record.get('id', '')).strip()
+                    rows.append({**record, 'id': record_id})
                 except json.JSONDecodeError:
                     continue
-    df = pd.DataFrame(rows)
+    df = pd.DataFrame(rows, dtype='string')
+    df['id'] = df['id'].astype(str)
     return df

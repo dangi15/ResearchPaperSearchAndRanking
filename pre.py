@@ -13,7 +13,7 @@ def preprocessing(df):
     df['text'] = df['title'].str.lower() + ' ' + df['abstract'].str.lower()
     df['clean_text'] = df['text'].apply(clean_text)
 
-    model = SentenceTransformer('all-MiniLM-L6-v2')
+    model = SentenceTransformer('./all-MiniLM-L6-v2-local')
     embeddings = model.encode(df['clean_text'].astype(str).tolist(), show_progress_bar=False)
     np.save('D:/coding/Python/elective/sem3PBL/files/embeddings.npy', embeddings)
     df.to_csv('papers.csv', index=False)
